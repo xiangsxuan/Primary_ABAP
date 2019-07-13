@@ -1,0 +1,24 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A0
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A0
+*& Date written:    04.04.2019 08:51:32
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 08:51:32
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-事件块语法
+*&---------------------------------------------------------------------*
+REPORT yxsx_a0.*---数据定义-*
+DATA: header(30),
+      text1(10)  TYPE c VALUE 'Text-1',
+      text2(10)  TYPE c VALUE 'Text-2'.*--事件块--*
+INITIALIZATION.
+  header = 'Demo program'.START-OF-SELECTION.
+  WRITE:/ text2.AT LINE-SELECTION.
+  WRITE:/ text1 ,sy-lsind.TOP-OF-PAGE.
+  WRITE header.END-OF-SELECTION.
+  WRITE / 'END-OF-SELECTION'.

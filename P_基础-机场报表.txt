@@ -1,0 +1,165 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_B5
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_B5
+*& Date written:    04.04.2019 10:19:24
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 10:19:24
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-机场报表
+*&---------------------------------------------------------------------*
+REPORT yxsx_b5.*引入图标
+INCLUDE <icon>.*内表行类型
+TYPES: BEGIN OF linetype,
+         cityfrom  TYPE spfli-cityfrom,
+         cityto    LIKE spfli-cityto,
+         carrid    LIKE spfli-carrid,
+         connid    LIKE spfli-connid,
+         countryfr LIKE spfli-countryfr,
+         countryto LIKE spfli-countryto,
+         fldate    LIKE sflight-fldate,
+         price     LIKE sflight-price,
+         currency  LIKE sflight-currency,
+         seatsmax  LIKE sflight-seatsmax,
+         seatsocc  LIKE sflight-seatsocc,
+       END OF linetype.*常量:位置
+CONSTANTS: pos_c1    TYPE i VALUE 6,
+           pos_c3    TYPE i VALUE 30,
+           pos_c4    TYPE i VALUE 58,
+           pos_c5    TYPE i VALUE 68,
+           line_size TYPE i VALUE 100.*常量:TRUE
+CONSTANTS mark VALUE 'X'.*内表声明
+DATA: itab_flights TYPE STANDARD TABLE OF linetype,
+      wa_flights   TYPE linetype.*选择参数:航班
+SELECTION-SCREEN BEGIN OF BLOCK conn WITH FRAME TITLE text-001.
+SELECT-OPTIONS: so_car FOR wa_flights-carrid,
+so_con FOR wa_flights-connid.
+SELECTION-SCREEN END OF BLOCK conn.*选择参数:航班日期
+SELECTION-SCREEN BEGIN OF BLOCK flight WITH FRAME TITLE text-002.
+SELECT-OPTIONS: so_fdt FOR wa_flights-fldate NO-EXTENSION.
+SELECTION-SCREEN END OF BLOCK flight.*输出参数设置
+SELECTION-SCREEN BEGIN OF BLOCK param WITH FRAME TITLE text-003.
+SELECTION-SCREEN BEGIN OF BLOCK radio WITH FRAME.
+PARAMETERS: all      RADIOBUTTON GROUP rbg1,
+            national RADIOBUTTON GROUP rbg1,
+            internat RADIOBUTTON GROUP rbg1 DEFAULT 'X'.
+SELECTION-SCREEN END OF BLOCK radio.
+PARAMETERS country LIKE wa_flights-countryfr.
+SELECTION-SCREEN END OF BLOCK param.*页首
+TOP-OF-PAGE.
+*标题
+  FORMAT COLOR COL_HEADING INTENSIFIED ON.
+  ULINE (1000).
+  WRITE: / sy-vline, 'Flight data', AT line_size sy-vline.
+  ULINE (100).
+*列标题
+  FORMAT COLOR COL_HEADING INTENSIFIED OFF.
+  WRITE: / sy-vline, 'Departure location', AT line_size sy-vline,
+  / sy-vline, 'Arrival location', AT line_size sy-vline,
+  / sy-vline, AT pos_c1 'Flight'.
+* 固定左滚动边界
+  SET LEFT SCROLL-BOUNDARY.
+  WRITE: 'date',
+  AT pos_c3 'Price'(006),
+  "(006) refers to text-006  and overwrite the string.
+  AT pos_c4 'Max.'(008),
+  AT pos_c5 'Occ.'(009),
+  AT line_size sy-vline.
+  ULINE (100).INITIALIZATION.
+  MOVE : 'AA' TO so_car-low,
+  'UA' TO so_car-high,
+  'BT' TO so_car-option,
+  'I' TO so_car-sign.
+  APPEND so_car.
+  CLEAR so_car.
+  MOVE: 'SQ' TO so_car-low,
+  'EQ' TO so_car-option,
+  'E' TO so_car-sign.
+  APPEND so_car.
+  CLEAR so_car.AT SELECTION-SCREEN ON BLOCK param.
+*check country for national flights is not empty
+  CHECK national = mark AND country = space.
+  MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+  WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.START-OF-SELECTION.
+*checking the output parameters
+  CASE mark.
+    WHEN all.
+*radiobutton all is marked
+      SELECT * FROM spfli INNER JOIN sflight
+      ON spfli~carrid = sflight~carrid AND spfli~connid = sflight~connid
+      INTO CORRESPONDING FIELDS OF TABLE itab_flights
+      WHERE spfli~carrid IN so_car
+      AND spfli~connid IN so_con
+      AND sflight~fldate IN so_fdt
+      AND spfli~countryfr = spfli~countryto
+      AND spfli~countryfr = country.    WHEN internat.
+*radiobutton internate is marked
+      SELECT * FROM spfli INNER JOIN sflight
+      ON spfli~carrid = sflight~carrid AND spfli~connid = sflight~connid
+      INTO CORRESPONDING FIELDS OF TABLE itab_flights
+      WHERE spfli~carrid IN so_car
+      AND spfli~connid IN so_con
+      AND sflight~fldate IN so_fdt
+      AND spfli~countryfr = spfli~countryto .
+  ENDCASE.END-OF-SELECTION.
+*内表数据排序
+  SORT itab_flights BY cityfrom cityto carrid connid.*数据输出
+  PERFORM data_output.*---------------------------------------------------------------------*
+*       FORM data_output                                              *
+*---------------------------------------------------------------------*
+*       ........                                                      *
+*---------------------------------------------------------------------*
+FORM data_output.
+  LOOP AT itab_flights INTO wa_flights.
+*group level: cityfrom
+    AT NEW cityfrom.
+      NEW-PAGE.
+      FORMAT COLOR COL_GROUP INTENSIFIED ON.
+      WRITE: / sy-vline, wa_flights-cityfrom, AT line_size sy-vline.
+      FORMAT RESET.
+    ENDAT.
+*group level: cityto
+    AT NEW cityto.
+      FORMAT COLOR COL_GROUP INTENSIFIED ON.
+      WRITE: / sy-vline, wa_flights-cityto, AT line_size sy-vline.
+      FORMAT RESET.
+    ENDAT.
+*single record processing
+*mark international flights
+    FORMAT COLOR COL_KEY INTENSIFIED ON.
+    IF wa_flights-countryfr EQ wa_flights-countryto.
+      WRITE: / sy-vline, icon_space AS ICON CENTERED.
+    ELSE.
+      WRITE: / sy-vline, icon_bw_gis AS ICON CENTERED.
+    ENDIF.
+*输出
+    WRITE: wa_flights-carrid, wa_flights-connid.
+    FORMAT COLOR COL_NORMAL INTENSIFIED OFF.
+    WRITE: wa_flights-fldate,
+    wa_flights-price CURRENCY wa_flights-currency,
+    wa_flights-currency,
+    wa_flights-seatsmax,
+    wa_flights-seatsocc,
+    AT line_size sy-vline.
+    FORMAT RESET.
+* group level: connid
+    AT END OF connid.
+      SUM.
+      FORMAT COLOR COL_TOTAL.
+      WRITE: / sy-vline,
+      'Total'(007),
+      wa_flights-seatsmax UNDER wa_flights-seatsmax,
+      wa_flights-seatsocc UNDER wa_flights-seatsocc,
+      AT line_size sy-vline.
+      FORMAT RESET.
+    ENDAT.
+*group level: cityfrom
+    AT END OF cityfrom.
+      ULINE (100).
+    ENDAT.
+  ENDLOOP.
+ENDFORM.

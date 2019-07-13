@@ -1,0 +1,201 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_B9
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_B9
+*& Date written:    04.04.2019 10:47:51
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 10:47:51
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-批量下载程序和表结构
+*&---------------------------------------------------------------------*
+REPORT yxsx_b9 NO STANDARD PAGE HEADING LINE-SIZE 200 MESSAGE-ID wa.TABLES:tadir,trdirt,tstc,dd03l,dd02l,dd04l,dd02t,dd03t,dd04t.
+DATA: BEGIN OF ytadir OCCURS 0.
+        INCLUDE STRUCTURE tadir.
+        INCLUDE STRUCTURE trdirt.
+DATA: END OF ytadir.DATA:prog(72) TYPE c OCCURS 0 WITH HEADER LINE.
+*表结构
+DATA:BEGIN OF tab OCCURS 0.
+        INCLUDE STRUCTURE dd03l.
+DATA:text(40).
+DATA:END OF tab.DATA:BEGIN OF t1 OCCURS 0,
+       tabname LIKE dd02l-tabname,
+       ddtext  LIKE dd02t-ddtext,
+     END OF t1.DATA:BEGIN OF itab OCCURS 0,
+       field(15),    "字段
+       key(6),       "关键字
+       elment(15),   "字段类型
+       type(10),     "数据类型
+       leng(8) ,     "长度
+       decimals(8) , "小数
+       chk(10),      "表检查
+       can(10),      "参考表
+       cfi(10),      "参考字段
+       text(40),     "字段描述
+     END OF itab.DATA: yyname(128) TYPE c.
+DATA: tt TYPE string OCCURS 0 WITH HEADER LINE.
+DATA: rn(72).DATA:fields(40),
+     lin        TYPE i,
+     val(30),
+     rep(40).
+SELECTION-SCREEN BEGIN OF BLOCK blk1 WITH FRAME.
+PARAMETERS:dow AS CHECKBOX.  "是否下载
+PARAMETERS:p_dir(50) DEFAULT 'D:'.    "下载路径
+PARAMETERS:stype(6) DEFAULT 'TXT'.PARAMETERS:r1 RADIOBUTTON GROUP r DEFAULT 'X',
+           r2 RADIOBUTTON GROUP r.SELECTION-SCREEN END OF BLOCK blk1.SELECTION-SCREEN BEGIN OF BLOCK blk2 WITH FRAME.
+SELECT-OPTIONS:author FOR tadir-author DEFAULT 'xiangsx'.      "开发人
+SELECT-OPTIONS:devclass FOR tadir-devclass.   "开发类
+SELECT-OPTIONS:obj FOR tadir-obj_name.   "下载程序名称
+SELECT-OPTIONS:tabname FOR dd02l-tabname.    "下载表名称SELECTION-SCREEN END OF BLOCK blk2.INITIALIZATION .START-OF-SELECTION .
+  IF r1 = 'X'.
+    PERFORM get_data.
+  ENDIF.  IF r2 = 'X'.
+    IF tabname IS INITIAL.
+      MESSAGE i009 WITH '请输入要下载的表名!'.
+    ELSE.
+      PERFORM get_table_data.
+    ENDIF.
+  ENDIF.
+AT LINE-SELECTION.
+  CLEAR: fields, lin.
+  GET CURSOR FIELD fields LINE lin VALUE val.
+  lin = lin - 1.
+  IF lin >= 1.
+    READ TABLE ytadir INDEX lin.
+    IF sy-subrc = 0.
+      CLEAR rep.
+      CLEAR prog.
+      rep = ytadir-obj_name.
+      READ REPORT rep INTO prog.
+      EDITOR-CALL FOR prog.
+*      SET PARAMETER ID 'RID' FIELD REP.
+*      CALL TRANSACTION 'SE38' AND SKIP FIRST SCREEN.
+    ENDIF.
+  ENDIF.END-OF-SELECTION.
+*---------------------------------------------------------------------*
+*       FORM GET_DATA                                                 *
+*---------------------------------------------------------------------*
+*       ........                                                      *
+*---------------------------------------------------------------------*
+FORM get_data.
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE ytadir
+  FROM tadir
+  INNER JOIN trdirt
+  ON tadir~obj_name = trdirt~name
+  WHERE object = 'PROG'
+  AND obj_name IN obj
+  AND devclass IN devclass
+  AND author IN author.
+  SORT ytadir BY obj_name.  WRITE:/ '开发类','开发人','程序名称','程序标题'.
+  LOOP AT ytadir.
+    IF dow = 'X'.
+      REFRESH tt.
+      rn = ytadir-obj_name.
+      READ REPORT rn INTO tt.      CONCATENATE p_dir ytadir-author '_' ytadir-obj_name
+      '_' ytadir-text '.' stype
+      INTO yyname.      CALL FUNCTION 'WS_DOWNLOAD'
+        EXPORTING
+          filename            = yyname
+          filetype            = 'ASC'
+        TABLES
+          data_tab            = tt
+        EXCEPTIONS
+          file_open_error     = 1
+          file_write_error    = 2
+          invalid_filesize    = 3
+          invalid_table_width = 4
+          invalid_type        = 5
+          no_batch            = 6
+          unknown_error       = 7.      IF sy-subrc = 0.
+        WRITE:/1(10) ytadir-devclass,
+        (8)  ytadir-author,
+        (15)  ytadir-obj_name,
+        (40)  ytadir-text.        FORMAT COLOR 5.
+        WRITE:      '已下载'.
+        FORMAT COLOR OFF.
+      ELSE.
+        WRITE:/ ytadir-devclass,ytadir-author,ytadir-obj_name,ytadir-text.
+        FORMAT COLOR 4.
+        WRITE:      '无法下载'.
+        FORMAT COLOR OFF.      ENDIF.
+    ELSE.
+      WRITE:/ ytadir-devclass,ytadir-author,ytadir-obj_name,ytadir-text.
+    ENDIF.  ENDLOOP.ENDFORM.                    "GET_DATA*---------------------------------------------------------------------*
+*       FORM GET_TABLE_DATA                                           *
+*---------------------------------------------------------------------*
+*       ........                                                      *
+*---------------------------------------------------------------------*
+FORM get_table_data.
+  SELECT DISTINCT * INTO CORRESPONDING FIELDS OF TABLE t1
+  FROM dd02t WHERE tabname IN tabname
+  AND ddlanguage EQ '1'.  SELECT * INTO CORRESPONDING FIELDS OF TABLE tab FROM dd03l AS a
+  WHERE a~tabname IN tabname.
+  SORT tab BY tabname position.  WRITE:/'字段名','关键字','数据元素','数据类型','长度','小数',
+  '表检查','参考表','参考字段','字段描述'.
+  ULINE.
+  LOOP AT t1.
+    REFRESH itab.
+    CLEAR yyname.    IF dow = 'X'.
+      itab-field = '字段名'.
+      itab-key =  '关键字'.
+      itab-elment = '数据元素'.
+      itab-type = '数据类型'.
+      itab-leng = '长度'.
+      itab-decimals = '小数'.
+      itab-text = '字段描述'.
+      itab-chk = '表检查'.
+      itab-can = '参考表'.
+      itab-cfi = '参考字段'.
+      APPEND itab.
+      CLEAR itab.
+    ENDIF.
+    CONCATENATE t1-tabname '_' t1-ddtext '的表结构如下:'
+    INTO yyname.
+    FORMAT COLOR 3.
+    WRITE:/ yyname.
+    FORMAT COLOR OFF.
+    LOOP AT tab WHERE tabname = t1-tabname.
+      itab-field = tab-fieldname.
+      itab-key = tab-keyflag.
+      itab-elment = tab-rollname.
+      itab-type = tab-datatype.
+      itab-leng = tab-leng.
+      itab-chk = tab-checktable.
+      itab-can = tab-reftable.
+      itab-cfi = tab-reffield.
+      itab-decimals = tab-decimals.      IF tab-rollname NE space.
+        SELECT SINGLE * FROM dd04t WHERE rollname = tab-rollname
+        AND ddlanguage = '1'.
+        IF sy-subrc = 0.
+          itab-text = dd04t-ddtext.
+        ELSE.
+          CLEAR itab-text.
+        ENDIF.
+      ELSE.
+        SELECT SINGLE * FROM dd03t WHERE tabname = tab-tabname
+        AND ddlanguage = '1'
+        AND fieldname = tab-fieldname.
+        IF sy-subrc = 0.
+          itab-text = dd03t-ddtext.
+        ELSE.
+          CLEAR itab-text.
+        ENDIF.
+      ENDIF.
+      APPEND itab.
+      WRITE:/ itab-field,itab-key,itab-elment,itab-type,itab-leng,
+      itab-decimals,itab-chk,itab-can,itab-cfi,itab-text.
+      CLEAR itab.
+    ENDLOOP.    IF dow  = 'X'.
+      CONCATENATE p_dir t1-tabname '_' t1-ddtext '.' stype
+      INTO yyname.      CALL FUNCTION 'WS_DOWNLOAD'
+        EXPORTING
+          filename = yyname
+          filetype = 'ASC'
+        TABLES
+          data_tab = itab.    ELSE.
+      ULINE.
+    ENDIF.  ENDLOOP.
+ENDFORM.                    "GET_TABLE_DATA

@@ -1,0 +1,30 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A8
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A8
+*& Date written:    04.04.2019 09:31:31
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:31:31
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-字符串函数
+*&---------------------------------------------------------------------*
+REPORT yxsx_a8.*连接字符串
+DATA:
+  s1 TYPE string VALUE 'The first String',
+  s2 TYPE string VALUE ' The second String',
+  s3 TYPE string VALUE 'String gotten'.WRITE:  / ,'连接函数操作前:',
+        /  's1= ',s1,
+        / 's2= ',s2,
+        / 's3= ',s3.CONCATENATE s1  s2 INTO s3.WRITE:  / ,'连接函数操作后:',
+        /  's1= ',s1,
+        / 's2= ',s2,
+        / 's3= ',s3.*拆分字符串函数与内表
+DATA: itab  TYPE TABLE OF string,
+      text5 TYPE string.WRITE:  / ,'拆分函数操作前:', / 's3= ' , s3.SPLIT s3 AT space INTO TABLE itab.WRITE:  / ,'拆分函数操作后:'.LOOP AT itab INTO text5.
+  WRITE:  / , text5.
+ENDLOOP.
+*更多字符串操作函数见《SAP程序设计》（黄佳 著） P119-122，或见系统字符串函数表

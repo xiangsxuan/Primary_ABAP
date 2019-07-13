@@ -1,0 +1,44 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A1
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A1
+*& Date written:    04.04.2019 09:00:16
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:00:16
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-数据与类型的定义
+*&---------------------------------------------------------------------*
+REPORT yxsx_a1.*基本类型（类似于C语言的数组/向量）
+TYPES vector TYPE c OCCURS 10.*简单数据定义与声明
+TYPES t_name(10) TYPE c.
+DATA: chinese_name(20) TYPE c,
+      f_name           TYPE t_name VALUE 'Cheong',
+      l_name           LIKE f_name VALUE 'Jacky'.chinese_name = 'ZhangXueYou'.
+WRITE: / f_name, / l_name, / chinese_name.*简单结构与数据
+TYPES:BEGIN OF t_staff,
+        s_no(3)  TYPE n, "Serial Number
+        name(20) ,"Staff Name
+      END OF t_staff.
+DATA: staff TYPE t_staff.*复杂数据类型
+TYPES:spfli_type  TYPE spfli, "spfli是一个数据字典结构
+      surname(20) TYPE c,
+      BEGIN OF address,
+        name       TYPE surname, "??surname是数据类型？
+        street(30) TYPE c,
+        city       TYPE spfli_type-cityfrom,
+      END OF address.DATA my_add TYPE address.
+my_add-name = 'ZhangMing'.
+my_add-street = 'No.1 NanYang'.
+my_add-city = 'Singapore'.
+WRITE:/ my_add-name ,/ my_add-street,/ my_add-city.*布尔量表示
+DATA: bool_ind TYPE c.
+bool_ind = 'X'.
+IF bool_ind EQ 'X'.
+  WRITE: / 'True'.
+ELSE.
+  WRITE: / 'False'.
+ENDIF.

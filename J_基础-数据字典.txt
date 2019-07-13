@@ -1,0 +1,17 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A9
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A9
+*& Date written:    04.04.2019 11:46:24
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 11:46:24
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-数据字典
+*&---------------------------------------------------------------------*
+REPORT YXSX_A9.*创建并使用数据字典类型
+DATA: xsx TYPE y_xsx_datatype."数据字典中 数据元素，域 的创建 以图形化界面创建即可, 此处创建了y_XSX_DataType类型xsx = 'xiangsxuan'.WRITE : / xsx."疑问：数据表字典不能创建，貌似没权限，
+"答疑：名字要以’Y*‘格式才能创建

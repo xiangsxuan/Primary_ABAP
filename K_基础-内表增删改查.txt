@@ -1,0 +1,96 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_B0
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_B0
+*& Date written:    04.04.2019 09:39:16
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:39:16
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-内表增删改查
+*&---------------------------------------------------------------------*
+REPORT yxsx_b0.*内表创建与操作
+* 书P 122页 程序4-24 代码有误
+*报错:  ITAB" 和 "LINE" 的行无法相互转换。在 Unicode 程序中，"ITAB" 与 "LINE" 的结构布局必须相同，而与  Unicode 字符的长度无关。must have the same structure layout as "LINE",
+*解决:  兴哥: 数据声明时,DATA里面用like声明类型,types用 type.例: 如下面的"{}"中描述的关系
+*         {DATA}       :itab     {LIKE}   STANDARD TABLE OF zline WITH HEADER LINE,
+DATA: BEGIN OF zline,
+        num TYPE i,
+        sqr TYPE i,
+      END OF zline.DATA:itab    LIKE STANDARD TABLE OF zline WITH HEADER LINE,
+     wa_line LIKE LINE OF itab.DO 5 TIMES.
+  wa_line-num = sy-index.
+  wa_line-sqr = sy-index ** 2.
+  APPEND wa_line TO itab.
+ENDDO.LOOP AT itab INTO wa_line.
+  WRITE: / wa_line-num, wa_line-sqr.
+ENDLOOP.
+CLEAR itab.
+*内表各种操作:创建,创建内表头,增删改查,整理复制
+*创建结构
+DATA: BEGIN OF address,
+        street(20) TYPE c,
+        city(20)   TYPE c,
+      END OF address.*标准内表类型
+TYPES address_tab LIKE STANDARD TABLE OF address WITH NON-UNIQUE KEY city.*创建结构
+DATA:BEGIN OF company,
+       name(20)  TYPE c,
+       addresses TYPE address_tab,
+     END OF company.*创建Hash内表
+DATA company_tab LIKE HASHED TABLE OF company WITH UNIQUE KEY name.*创建排序内表
+DATA company_sorted_tab LIKE SORTED TABLE OF company WITH UNIQUE KEY name.DATA idx TYPE sy-tabix.*增
+company-name = '公司1'.
+address-street = '街道1'.
+address-city = '城市1'.
+APPEND address TO company-addresses.
+address-street = '街道2'.
+address-city = '城市2'.
+APPEND address TO company-addresses.INSERT company INTO TABLE company_tab.
+CLEAR company.company-name = '公司2'.
+address-street = '街道3'.
+address-city = '城市3'.
+APPEND address TO company-addresses.
+address-street = '街道5'.
+address-city = '城市5'.
+APPEND address TO company-addresses.
+address-street = '街道4'.
+address-city = '城市4'.
+APPEND address TO company-addresses.
+INSERT company INTO TABLE company_tab.*查
+READ TABLE company_tab
+WITH TABLE KEY name = '公司2'
+INTO company.
+WRITE: / company-name.LOOP AT company-addresses INTO address.
+  WRITE: / sy-tabix, address-street, address-city.
+ENDLOOP.*改前
+address-street = '新街道'.
+address-city = '城市5'.
+READ TABLE company_tab WITH TABLE KEY name = '公司2' INTO company.
+READ TABLE company-addresses TRANSPORTING NO FIELDS WITH TABLE KEY city = address-city.*改中
+idx = sy-tabix."sy-tabix是:
+MODIFY company-addresses FROM address INDEX idx.
+MODIFY TABLE company_tab FROM company.*改后
+READ TABLE company_tab WITH TABLE KEY name = '公司2' INTO company.
+WRITE: / company-name.LOOP AT company-addresses INTO address.
+  WRITE: / sy-tabix, address-street, address-city.
+ENDLOOP.*内表整理复制,排序
+company_sorted_tab = company_tab.LOOP AT company_sorted_tab INTO company.
+  WRITE: / company-name.
+  SORT company-addresses."关键在这里排序
+  LOOP AT company-addresses INTO address.
+    WRITE: / sy-tabix, address-street, address-city.
+  ENDLOOP.
+ENDLOOP.*动态数据对象
+DATA: BEGIN OF address1,
+        street(20) TYPE c VALUE 'Nanyang Street',
+        b(4)       TYPE c VALUE '1234',
+        zip(5)     TYPE c VALUE '5678',
+        city(20)   TYPE c VALUE '新加坡',
+      END OF address1.FIELD-SYMBOLS:<street_no> TYPE c, "声明字段符号(我:感觉这类似于指针?只不过SAP的类型系统更宽容,可指向任意类型?   理解有偏差, 看140页)
+              <zip_city>  TYPE c.ASSIGN: address1(24) TO <street_no>,"分配数据对象(我:类似给指针赋值?)
+        address1+24(25) TO <zip_city>.
+WRITE:  / <street_no>,"(我:类似:去指针对象?)
+        / <zip_city>.*TODO 数据引用P146

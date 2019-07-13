@@ -1,0 +1,37 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A7
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A7
+*& Date written:    04.04.2019 09:27:36
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:27:36
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-执行流程结构控制
+*&---------------------------------------------------------------------*
+REPORT yxsx_a7.*IF分支
+IF 'x' = 'x'.
+  WRITE: / 'x=x'.
+ELSE .
+  WRITE / 'x!=x'.
+ENDIF.*CASE分支 执行cond变量相等时的分支
+DATA: cond1 TYPE c VALUE 'x',
+      cond2 TYPE c VALUE 'y'.CASE cond1.
+  WHEN cond2.
+    WRITE: / '语句1'.
+  WHEN 'x'.
+    WRITE: / '语句2'.
+  WHEN OTHERS.
+    WRITE: / '语句3'.
+ENDCASE.*Do循环
+DATA: cond3 TYPE c VALUE 'x'.DO 5 TIMES.
+  " IF cond3 = 'x'.CONTINUE.ENDIF.
+  WRITE: /'DO循环执行第',sy-index,'次'.
+ENDDO.*WHILE条件循环
+DATA: time4 TYPE n VALUE '5'.WHILE time4 > 0.
+  WRITE: / 'While循环, time= ',time4, '这是循环的第',sy-index, '次'.
+  time4 = time4 - 1.
+ENDWHILE.

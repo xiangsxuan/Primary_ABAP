@@ -1,0 +1,21 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A4
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A4
+*& Date written:    04.04.2019 09:16:25
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:16:25
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-内置对象
+*&---------------------------------------------------------------------*
+REPORT yxsx_a4.*--数据定义--*
+DATA: text(8)      TYPE c VALUE '12345',
+      len          TYPE i,
+      datatype(20) TYPE c.*内置对象
+DESCRIBE FIELD text LENGTH len IN CHARACTER MODE."这个长度包含数据的空格位，此处虽然存储了12345，但是有8位
+DESCRIBE FIELD text TYPE datatype.WRITE:  / text , ' has length' ,len , '（说明长度是根据定义时来的而不是根据实际长度)',
+        / '.It''s type is ', datatype.

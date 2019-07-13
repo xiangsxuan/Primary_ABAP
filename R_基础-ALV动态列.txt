@@ -1,0 +1,84 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_B8
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_B8
+*& Date written:    04.04.2019 11:47:11
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 11:47:11
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-ALV动态列
+*&---------------------------------------------------------------------*
+REPORT yxsx_b8.*-------------ALV 相关--------------------------
+DATA: wa_layo TYPE lvc_s_layo.
+DATA: wa_fcat TYPE lvc_s_fcat,
+      it_fcat TYPE lvc_t_fcat.
+DATA  it_scol TYPE lvc_t_scol.
+DATA: g_grid TYPE REF TO cl_gui_alv_grid.FIELD-SYMBOLS: <dyn_table> TYPE STANDARD TABLE,
+               <dyn_wa>,
+               <dyn_field>.DATA: dy_table TYPE REF TO data,
+      dy_line  TYPE REF TO data.DATA: colname(10),
+      index(2).* 列数
+PARAMETERS: col TYPE i.CLEAR: it_fcat.* 根据条件动态生成列
+DO col TIMES.
+  index = index + 1.
+  CONCATENATE 'COL' index INTO colname.
+  PERFORM frm_add_fcat USING:
+        colname 'C' '描述' '100'.
+ENDDO.* 根据it_fact生成动态表
+CALL METHOD cl_alv_table_create=>create_dynamic_table
+  EXPORTING
+    it_fieldcatalog = it_fcat
+  IMPORTING
+    ep_table        = dy_table.ASSIGN dy_table->* TO <dyn_table>.CREATE DATA dy_line LIKE LINE OF <dyn_table>.ASSIGN dy_line->* TO <dyn_wa>.* 给表字段赋值
+CLEAR: index.
+DO col TIMES.
+  index = index + 1.
+  CONCATENATE 'COL' index INTO colname.
+  ASSIGN COMPONENT colname OF STRUCTURE <dyn_wa>  TO <dyn_field>.
+  <dyn_field> = '列数据'.
+ENDDO.
+APPEND <dyn_wa> TO <dyn_table>.* 相当于给内表放入两条数据
+CLEAR: index.
+DO col TIMES.
+  index = index + 1.
+  CONCATENATE 'COL' index INTO colname.
+  ASSIGN COMPONENT colname OF STRUCTURE <dyn_wa> TO <dyn_field>.
+  <dyn_field> = '列数据'.
+ENDDO.
+APPEND <dyn_wa> TO <dyn_table>.CLEAR: wa_layo.
+wa_layo-zebra = 'X'.
+wa_layo-cwidth_opt = 'X'.CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY_LVC'
+  EXPORTING
+    i_callback_program = sy-repid
+    is_layout_lvc      = wa_layo
+    it_fieldcat_lvc    = it_fcat
+  TABLES
+    t_outtab           = <dyn_table>
+  EXCEPTIONS
+    program_error      = 1
+    OTHERS             = 2.
+IF sy-subrc <> 0.
+  MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+  WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+ENDIF.*&---------------------------------------------------------------------*
+*&      Form  frm_add_fcat
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*      -->VALUE1     text
+*      -->VALUE2     text
+*      -->VALUE3     text
+*      -->VALUE4     text
+*----------------------------------------------------------------------*
+FORM frm_add_fcat USING value1 value2 value3 value4.
+  wa_fcat-fieldname = value1.
+  wa_fcat-inttype = value2.
+  wa_fcat-reptext = value3.
+  wa_fcat-intlen   = value4.
+  APPEND wa_fcat TO it_fcat.
+  CLEAR: wa_fcat.
+ENDFORM.                    "frm_add_fcat

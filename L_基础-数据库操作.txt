@@ -1,0 +1,35 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_B1
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_B1
+*& Date written:    04.04.2019 09:48:47
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:48:47
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-数据库操作
+*&---------------------------------------------------------------------*
+REPORT yxsx_b1.*--类型定义--*
+TYPES: BEGIN OF ty_type,
+         carrid TYPE spfli-carrid,
+         connid TYPE spfli-connid,
+       END OF ty_type.DATA: it_spfli TYPE TABLE OF spfli.
+DATA: wa_spfli TYPE ty_type.DATA: header(30),
+      spfli_tab  TYPE TABLE OF spfli, "用table定义的,这个可多行,属于内表
+      spfli_line TYPE spfli.   "没用table, 这个仅仅是一行*--数据库操作--*
+*数据库操作流程: 工作区数据→内表→数据库表SELECT *
+FROM spfli
+INTO CORRESPONDING FIELDS OF TABLE it_spfli.LOOP AT it_spfli INTO wa_spfli.
+  WRITE:/ wa_spfli-carrid, wa_spfli-connid.
+ENDLOOP.SELECT * INTO CORRESPONDING FIELDS OF spfli_line FROM spfli."CORRESPONDING FIELDS OF的意思是:扁平对象,结构体的字段多于所需, 不将所有字段都放进目标区
+  INSERT spfli_line INTO TABLE spfli_tab.
+ENDSELECT.LOOP AT spfli_tab INTO spfli_line.
+  WRITE: /  spfli_line-cityfrom,
+            spfli_line-cityto,
+            spfli_line-carrid,
+            spfli_line-connid.
+ENDLOOP.
+SKIP 3.

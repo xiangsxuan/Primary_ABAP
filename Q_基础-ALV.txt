@@ -1,0 +1,68 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_B6
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_B6
+*& Date written:    04.04.2019 10:21:17
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 10:21:17
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-ALV
+*&---------------------------------------------------------------------*
+REPORT yxsx_b6.TYPE-POOLS:slis.
+DATA: fieldcat TYPE slis_t_fieldcat_alv WITH HEADER LINE.DATA:BEGIN OF lt_stock OCCURS 0,
+       sel,"用来做选择按钮列
+       checkbox,"用作复选框列
+       werks    LIKE mard-werks, "工厂
+       matnr    LIKE mara-matnr, "物料
+       labst    LIKE mard-labst, "库存
+       int      TYPE i, "用来测试统计的自定义字段
+       color(4),"用来存储颜色
+     END OF lt_stock.INITIALIZATION.
+  PERFORM inital.START-OF-SELECTION.
+  DEFINE fill_fdcat.
+    CLEAR fieldcat.
+    fieldcat-fieldname = &1. "需要显示的内表行结构中的哪个字段
+    fieldcat-seltext_l = &2. "ALV显示时标题栏中的文本
+    fieldcat-KEY = &3. "是否是关键字段，如果是则单元格显示的颜色会不同，并会靠前显示
+    APPEND fieldcat.
+  END-OF-DEFINITION.  fill_fdcat 'WERKS' '工厂' 'X'.
+  fill_fdcat 'MATNR' '物料' 'X'.
+  fill_fdcat 'LABST' '库存' ''.
+  fill_fdcat 'INT' '自定义字段' ''.  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+    EXPORTING
+      it_fieldcat = fieldcat[]
+    TABLES
+      t_outtab    = lt_stock.FORM inital .
+  lt_stock-sel = 'X'.
+  lt_stock-checkbox = 'X'.
+  lt_stock-werks = '1001'.
+  lt_stock-matnr = '1001M1'.
+  lt_stock-labst = 4.
+  lt_stock-int = 2.
+  lt_stock-color = 'C100'.
+  APPEND lt_stock .  CLEAR:lt_stock.
+  lt_stock-sel = 'X'.
+  lt_stock-werks = '1001'.
+  lt_stock-matnr = '1001M2'.
+  lt_stock-labst = 3.
+  lt_stock-int = 1.
+  lt_stock-color = 'C200'.
+  APPEND lt_stock .  CLEAR:lt_stock.
+  lt_stock-checkbox = 'X'.
+  lt_stock-werks = '1002'.
+  lt_stock-matnr = '1001M1'.
+  lt_stock-labst = 2.
+  lt_stock-int = 3.
+  lt_stock-color = 'C300'.
+  APPEND lt_stock .  CLEAR:lt_stock.
+  lt_stock-werks = '1002'.
+  lt_stock-matnr = '1001M2'..
+  lt_stock-labst = 1.
+  lt_stock-int = 1.
+  lt_stock-color = 'C300'.
+  APPEND lt_stock .
+ENDFORM.

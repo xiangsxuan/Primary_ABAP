@@ -1,0 +1,17 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A5
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A5
+*& Date written:    04.04.2019 09:21:45
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:21:45
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-数学函数
+*&---------------------------------------------------------------------*
+REPORT YXSX_A5.DATA: result(20) TYPE C,
+      float      TYPE f VALUE  '2.5E00'.result = TRUNC( float )."该数学函数是：返回整数部分
+WRITE:  / result.

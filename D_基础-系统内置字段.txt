@@ -1,0 +1,16 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A3
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A3
+*& Date written:    04.04.2019 09:11:46
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:11:46
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-系统内置字段
+*&---------------------------------------------------------------------*
+REPORT yxsx_a3.*时间
+DATA time1 TYPE t.time1 = sy-uzeit.WRITE: / '现在的时间是：', time1.

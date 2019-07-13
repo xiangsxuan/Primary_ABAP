@@ -1,0 +1,97 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_B3
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_B3
+*& Date written:    04.04.2019 10:12:36
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 10:12:36
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          基础-基础报表
+*&---------------------------------------------------------------------*
+REPORT yxsx_b3.TABLES: spfli, sgeocity.*类型定义
+TYPES:BEGIN OF ty_spfli,
+        carrid    LIKE spfli-carrid,
+        connid    LIKE spfli-connid,
+        countryfr LIKE spfli-countryfr,
+        cityfrom  LIKE spfli-cityfrom,
+        airpfrom  LIKE spfli-airpfrom,
+        countryto LIKE spfli-countryto,
+        cityto    LIKE spfli-cityto,
+        airpto    LIKE spfli-airpto,
+        fltime    LIKE spfli-fltime,
+        deptime   LIKE spfli-deptime,
+        arrtime   LIKE spfli-arrtime,
+        distance  LIKE spfli-distance,
+        distid    LIKE spfli-distid,
+        fltype    LIKE spfli-fltype,
+        period    LIKE spfli-period,
+      END OF ty_spfli.
+*TYPES:BEGIN OF ty_sgeocity,
+*        city      LIKE sgeocity-city,
+*        country   LIKE sgeocity-country,
+*        latitude  LIKE sgeocity-latitude,
+*        longitude LIKE sgeocity-longitude,
+*      END OF ty_sgeocity.
+*alv数据定义
+DATA: i_fields TYPE lvc_t_fcat." Field symbol for field catalog
+FIELD-SYMBOLS: <wa_fields> TYPE lvc_s_fcat.
+*内表和工作区
+DATA: it_spfli TYPE TABLE OF ty_spfli WITH HEADER LINE, "it_spfli为内表
+      wa_spfli LIKE TABLE OF it_spfli.                  "wa_spfli为工作区
+*选择表
+SELECTION-SCREEN BEGIN OF BLOCK block1 WITH FRAME TITLE text-001.
+PARAMETERS: p_ctfrom TYPE spfli-cityfrom DEFAULT 'NEW YORK', "出发城市     "单值输入(用like说类型)
+            p_ctto   TYPE spfli-cityto DEFAULT 'SAN FRANCISCO'. "抵达城市
+SELECTION-SCREEN END OF BLOCK block1.SELECTION-SCREEN BEGIN OF BLOCK block2 WITH FRAME TITLE text-002.
+SELECT-OPTIONS: s_dptime FOR spfli-deptime,"出发时间    "多值输入(用for)
+s_artime FOR spfli-arrtime."抵达时间
+SELECTION-SCREEN END OF BLOCK block2.START-OF-SELECTION.
+  PERFORM frm_get_data.
+  PERFORM frm_alv_display.
+*&---------------------------------------------------------------------*
+*&      Form  FRM_GET_DATA
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM frm_get_data .
+  CLEAR:it_spfli[].  SELECT * FROM spfli INTO CORRESPONDING FIELDS OF TABLE it_spfli
+  " 不写 CORRESPONDING FIELDS OF 会报错
+  WHERE cityfrom = p_ctfrom
+  AND cityto = p_ctto
+  AND deptime IN s_dptime
+  AND arrtime IN s_artime.
+*  IF sy-subrc = 0.
+*    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+*    WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+*  ENDIF.ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  FRM_ALV_DISPLAY
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+*  -->  p1        text
+*  <--  p2        text
+*----------------------------------------------------------------------*
+FORM frm_alv_display .
+  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY_LVC'
+    EXPORTING
+      i_structure_name = 'SFLIGHT'
+      i_grid_title     = '航班信息'(001)
+      it_fieldcat_lvc  = i_fields
+    TABLES
+      t_outtab         = it_spfli
+    EXCEPTIONS
+      program_error    = 1
+      OTHERS           = 2.
+  IF sy-subrc <> 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+    WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ENDIF.
+ENDFORM.

@@ -1,0 +1,32 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_A2
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_A2
+*& Date written:    04.04.2019 09:05:52
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 09:05:52
+*& Project Name:    *
+*& Version:         V1.0
+*& Moditxt-ABAPy History:  *
+*& Sketch:          基础-Write输出格式控制
+*&---------------------------------------------------------------------*
+REPORT yxsx_a2.*--数据定义声明--*
+DATA: txt-hello(5) TYPE c VALUE 'HELLO',
+      txt-abap(5)  TYPE c VALUE 'ABAP'.*输出
+WRITE:  / txt-hello,txt-abap.
+WRITE:  /10 txt-hello,
+        /  txt-abap UNDER txt-hello,
+        /  txt-abap UNDER txt-hello RIGHT-JUSTIFIED.
+WRITE:  / txt-hello NO-GAP, txt-abap.
+WRITE   / '--------'.*--数据定义声明--*
+DATA:char(10) VALUE 'abc',
+      numc(10) TYPE n VALUE '123',
+      time3    TYPE t VALUE '123456',
+      DATE     TYPE d VALUE '20190228',
+      hex(10)  TYPE X VALUE 'A1F',
+      float1   TYPE f VALUE '3.1315',
+      int      TYPE I VALUE '3',
+      PACK(10) TYPE p DECIMALS 2 VALUE '12345'.*输出
+WRITE: / '-----',/ char, / numc , / time3 , / DATE  YYMMDD, / hex , / float1 , / int , / PACK ROUND 1.

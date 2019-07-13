@@ -1,0 +1,30 @@
+*&---------------------------------------------------------------------*
+*& Report  YXSX_B2
+*&
+*&---------------------------------------------------------------------*
+*& Program Name:    YXSX_B2
+*& Date written:    04.04.2019 10:10:10
+*& Author's name:   xiangsxuan
+*& Business design: *
+*& Last update:     04.04.2019 10:10:10
+*& Project Name:    *
+*& Version:         V1.0
+*& Modify History:  *
+*& Sketch:          »ù´¡-Ñ¡ÔñÆÁÄ»
+*&---------------------------------------------------------------------*
+REPORT yxsx_b2.TABLES spfli.PARAMETERS p_mode(5).
+SELECT-OPTIONS so_air FOR spfli-carrid.START-OF-SELECTION.  CASE p_mode.
+    WHEN 'STOP'.
+      WRITE:/ 'Testing STOP'.
+    WHEN 'EXIT'.
+      WRITE:/ 'Testing EXIT'.
+    WHEN OTHERS.
+      CHECK p_mode ='CHECK'.
+      WRITE:/ 'Testing CHECK'.
+  ENDCASE.  WRITE: /  '------' , / .
+  LOOP AT so_air.
+    WRITE: /  'SIGN:',so_air-sign,
+              'OPTION:',so_air-option,
+              'LOW:',so_air-sign,
+              'HIGH:',so_air-high.
+  ENDLOOP.
